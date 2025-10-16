@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silvercore Support</title>
+    <!-- Chargement de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chargement de la police Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Définition des variables de couleur pour un design moderne */
+        :root {
+            --color-primary: #1e3a8a; /* Bleu foncé, Silvercore */
+            --color-secondary: #3b82f6; /* Bleu vif */
+            --color-background: #f1f5f9; /* Arrière-plan clair */
+            --color-card-bg: #ffffff; /* Fond des cartes */
+            --color-text-dark: #1f2937; /* Texte sombre */
+            --color-success: #10b981;
+            --color-error: #ef4444;
+        }
+
+        /* Application de la police et du fond */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text-dark);
+            min-height: 100vh;
+        }
+
+        /* Styles généraux pour le thème */
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: var(--color-secondary);
+        }
+        .input-style {
+            border-color: #d1d5db;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-style:focus {
+            border-color: var(--color-secondary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5); /* ring-2 blue-500 equivalent */
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <!-- En-tête de l'application -->
+    <header class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold text-gray-900" style="color: var(--color-primary);">Silvercore Support</h1>
+        <p class="mt-2 text-lg text-gray-600">Portail de gestion des tickets pour Silvernote & Silvertransfert</p>
+    </header>
+
+    <!-- Conteneur principal de l'application -->
+    <div id="app-container" class="max-w-4xl mx-auto">
+        
+        <!-- Vue Utilisateur : Soumission de Ticket -->
+        <div id="user-view" class="bg-white p-6 sm:p-8 rounded-xl shadow-2xl transition duration-500">
+            <h2 class="text-2xl font-bold mb-6 text-center" style="color: var(--color-secondary);">Ouvrir un Nouveau Ticket</h2>
+            
+            <form id="ticket-form" class="space-y-6">
+                
+                <!-- Sélection du Service -->
+                <div>
+                    <label for="service" class="block text-sm font-medium text-gray-700 mb-1">Service concerné</label>
+                    <select id="service" required class="w-full input-style border">
+                        <option value="" disabled selected>Sélectionner un service</option>
+                        <option value="silvernote">Silvernote (Gestion de Notes et Documents)</option>
+                        <option value="silvertransfert">Silvertransfert (Transfert de Fichiers Sécurisé)</option>
+                    </select>
+                </div>
+
+                <!-- Email et Pseudo -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Votre Email</label>
+                        <input type="email" id="email" required class="w-full input-style border" placeholder="votre.email@exemple.com">
+                    </div>
+                    <div>
+                        <label for="pseudo" class="block text-sm font-medium text-gray-700 mb-1">Votre Pseudo</label>
+                        <input type="text" id="pseudo" required class="w-full input-style border" placeholder="PseudoSilvercore">
+                    </div>
+                </div>
+
+                <!-- Description du Problème -->
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description détaillée du problème</label>
+                    <textarea id="description" required rows="5" class="w-full input-style border" placeholder="Décrivez en détail ce qui ne fonctionne pas et ce que vous attendiez..."></textarea>
+                </div>
+
+                <!-- Bouton de Soumission -->
+                <button type="submit" class="w-full py-3 rounded-xl font-semibold text-lg btn-primary shadow-lg hover:shadow-xl transition duration-300">
+                    Soumettre le Ticket
+                </button>
+            </form>
+
+            <!-- Message de Statut (Succès/Erreur) -->
+            <div id="user-message" class="mt-4 p-3 rounded-lg hidden"></div>
+
+            <!-- Bouton d'accès Modérateur -->
+            <button id="access-moderator-btn" class="mt-8 text-sm text-center w-full text-gray-500 hover:text-gray-700 transition duration-150">
+                Accès Modérateur
+            </button>
+        </div>
+
+        <!-- Vue Modérateur : Connexion -->
+        <div id="login-view" class="hidden bg-white p-6 sm:p-8 rounded-xl shadow-2xl transition duration-500 max-w-md mx-auto">
+            <h2 class="text-2xl font-bold mb-6 text-center" style="color: var(--color-primary);">Connexion Modérateur</h2>
+            <form id="moderator-login-form" class="space-y-4">
+                <div>
+                    <label for="mod-password" class="block text-sm font-medium text-gray-700 mb-1">Mot de Passe</label>
+                    <input type="password" id="mod-password" required class="w-full input-style border" placeholder="Mot de passe unique">
+                </div>
+                <button type="submit" class="w-full py-2 rounded-xl font-semibold btn-primary">
+                    Se Connecter
+                </button>
+                <button type="button" id="back-to-user-btn" class="w-full py-2 rounded-xl font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-300">
+                    Retour à l'Ouverture de Ticket
+                </button>
+            </form>
+            <p id="login-message" class="text-center mt-4 text-sm text-red-500 hidden">Mot de passe incorrect.</p>
+        </div>
+
+        <!-- Vue Modérateur : Tableau de Bord -->
+        <div id="moderator-view" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-bold" style="color: var(--color-primary);">Tableau de Bord des Tickets</h2>
+                <button id="logout-btn" class="px-4 py-2 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition duration-300">
+                    Déconnexion
+                </button>
+            </div>
+            
+            <p class="text-sm text-gray-600 mb-4">
+                Connecté en tant que Modérateur. ID App: <span id="display-app-id"></span>
+                | ID User (Modérateur): <span id="display-user-id"></span>
+            </p>
+
+            <!-- Liste des Tickets -->
+            <div id="tickets-list" class="space-y-4">
+                <!-- Les tickets seront insérés ici par JavaScript -->
+            </div>
+            
+            <!-- Message de chargement/absence de tickets -->
+            <p id="loading-message" class="text-center p-8 text-lg text-gray-500">Chargement des tickets...</p>
+        </div>
+
+    </div>
+
+    <!-- Modale de Confirmation (simule alert/confirm) -->
+    <div id="modal-container" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-xl shadow-3xl max-w-sm w-full transition-transform transform scale-100">
+            <h3 id="modal-title" class="text-xl font-bold mb-4" style="color: var(--color-primary);">Attention</h3>
+            <p id="modal-body" class="text-gray-700 mb-6"></p>
+            <div class="flex justify-end space-x-3">
+                <button id="modal-cancel-btn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition duration-200 hidden">Annuler</button>
+                <button id="modal-ok-btn" class="px-4 py-2 rounded-lg btn-primary transition duration-200">OK</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+        // --- STOCKAGE LOCAL DES DONNÉES ---
+        let tickets = [];
+        let ticketIdCounter = 1;
+        const MODERATOR_PASSWORD = "admin123";
+        let isModerator = false;
+
+        // Éléments DOM
+        const userView = document.getElementById('user-view');
+        const loginView = document.getElementById('login-view');
+        const moderatorView = document.getElementById('moderator-view');
+        const ticketsList = document.getElementById('tickets-list');
+        const loadingMessage = document.getElementById('loading-message');
+        const userMessage = document.getElementById('user-message');
+        const loginMessage = document.getElementById('login-message');
+
+        // --- Fonctions Utilitaires ---
+        
+        function showModal(title, body, type = 'info', onConfirm = null) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-body').textContent = body;
+            
+            const okBtn = document.getElementById('modal-ok-btn');
+            const cancelBtn = document.getElementById('modal-cancel-btn');
+            const modalContainer = document.getElementById('modal-container');
+
+            okBtn.onclick = () => { modalContainer.classList.add('hidden'); };
+            cancelBtn.classList.add('hidden');
+
+            if (onConfirm) {
+                cancelBtn.classList.remove('hidden');
+                okBtn.textContent = "Confirmer";
+                okBtn.onclick = () => {
+                    modalContainer.classList.add('hidden');
+                    onConfirm();
+                };
+                cancelBtn.onclick = () => {
+                    modalContainer.classList.add('hidden');
+                };
+            } else {
+                okBtn.textContent = "OK";
+            }
+            
+            modalContainer.classList.remove('hidden');
+        }
+
+        function displayUserMessage(message, isSuccess = true) {
+            userMessage.textContent = message;
+            userMessage.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700');
+            
+            if (isSuccess) {
+                userMessage.classList.add('bg-green-100', 'text-green-700');
+            } else {
+                userMessage.classList.add('bg-red-100', 'text-red-700');
+            }
+            
+            setTimeout(() => {
+                userMessage.classList.add('hidden');
+            }, 5000);
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp);
+            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            return date.toLocaleDateString('fr-FR', options);
+        }
+
+        function generateTicketId() {
+            return `TICKET-${Date.now()}-${ticketIdCounter++}`;
+        }
+
+        // --- Navigation entre vues ---
+        
+        function showView(viewName) {
+            userView.classList.add('hidden');
+            loginView.classList.add('hidden');
+            moderatorView.classList.add('hidden');
+            
+            if (viewName === 'user-view') {
+                userView.classList.remove('hidden');
+            } else if (viewName === 'login-view') {
+                loginView.classList.remove('hidden');
+                loginMessage.classList.add('hidden');
+                document.getElementById('mod-password').value = '';
+            } else if (viewName === 'moderator-view' && isModerator) {
+                moderatorView.classList.remove('hidden');
+                renderTickets();
+            } else {
+                showView('user-view');
+            }
+        }
+
+        // --- Soumission de Ticket ---
+        
+        document.getElementById('ticket-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const ticketData = {
+                id: generateTicketId(),
+                service: document.getElementById('service').value,
+                email: document.getElementById('email').value,
+                pseudo: document.getElementById('pseudo').value,
+                description: document.getElementById('description').value,
+                status: 'Ouvert',
+                createdAt: Date.now()
+            };
+
+            tickets.push(ticketData);
+            
+            displayUserMessage("Votre ticket a été soumis avec succès ! Nous vous répondrons bientôt.", true);
+            document.getElementById('ticket-form').reset();
+            
+            console.log('Ticket créé:', ticketData);
+        });
+
+        // --- Connexion Modérateur ---
+        
+        document.getElementById('moderator-login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const password = document.getElementById('mod-password').value;
+            
+            if (password === MODERATOR_PASSWORD) {
+                isModerator = true;
+                showView('moderator-view');
+                loginMessage.classList.add('hidden');
+            } else {
+                loginMessage.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            isModerator = false;
+            showView('user-view');
+        });
+
+        // --- Gestion des Tickets (Modérateur) ---
+        
+        function updateTicketStatus(ticketId, newStatus) {
+            showModal("Confirmation de mise à jour", 
+                `Voulez-vous vraiment changer le statut de ce ticket à "${newStatus}" ?`, 
+                'confirm', 
+                () => {
+                    const ticket = tickets.find(t => t.id === ticketId);
+                    if (ticket) {
+                        ticket.status = newStatus;
+                        renderTickets();
+                        displayUserMessage(`Statut du ticket mis à jour : ${newStatus}`, true);
+                    }
+                }
+            );
+        }
+
+        function deleteTicket(ticketId) {
+            showModal("Confirmation de Suppression", 
+                "CETTE ACTION EST IRRÉVERSIBLE. Voulez-vous vraiment supprimer ce ticket ?", 
+                'confirm', 
+                () => {
+                    const index = tickets.findIndex(t => t.id === ticketId);
+                    if (index !== -1) {
+                        tickets.splice(index, 1);
+                        renderTickets();
+                        displayUserMessage(`Ticket supprimé.`, true);
+                    }
+                }
+            );
+        }
+
+        // --- Affichage des Tickets ---
+        
+        function renderTickets() {
+            ticketsList.innerHTML = '';
+            //document.getElementById('ticket-count').textContent = tickets.length;
+
+            if (tickets.length === 0) {
+                loadingMessage.classList.remove('hidden');
+                loadingMessage.textContent = 'Aucun ticket ouvert actuellement.';
+                return;
+            }
+
+            loadingMessage.classList.add('hidden');
+
+            // Tri des tickets
+            const sortedTickets = [...tickets].sort((a, b) => {
+                if (a.status === 'Ouvert' && b.status !== 'Ouvert') return -1;
+                if (a.status !== 'Ouvert' && b.status === 'Ouvert') return 1;
+                return b.createdAt - a.createdAt;
+            });
+
+            sortedTickets.forEach(ticket => {
+                const statusColor = ticket.status === 'Ouvert' ? 'bg-yellow-100 text-yellow-800' : 
+                                  ticket.status === 'En Cours' ? 'bg-blue-100 text-blue-800' : 
+                                  'bg-green-100 text-green-800';
+                
+                const borderColor = ticket.status === 'Ouvert' ? 'border-yellow-500' : 
+                                   ticket.status === 'En Cours' ? 'border-blue-500' : 
+                                   'border-green-500';
+                
+                const card = document.createElement('div');
+                card.className = `bg-white p-6 rounded-xl shadow-lg border-l-4 ${borderColor}`;
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
+                        <h3 class="text-xl font-bold truncate pr-4">Ticket #${ticket.id}</h3>
+                        <span class="text-sm font-semibold px-3 py-1 rounded-full ${statusColor} mt-2 sm:mt-0">${ticket.status}</span>
+                    </div>
+
+                    <div class="text-sm space-y-1 mb-4 text-gray-600">
+                        <p><strong>Service :</strong> <span class="capitalize">${ticket.service}</span></p>
+                        <p><strong>De :</strong> ${ticket.pseudo} (<a href="mailto:${ticket.email}" class="text-blue-500 hover:text-blue-700">${ticket.email}</a>)</p>
+                        <p><strong>Soumis le :</strong> ${formatDate(ticket.createdAt)}</p>
+                    </div>
+                    
+                    <div class="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="font-medium text-gray-800 mb-1">Description :</p>
+                        <p class="text-gray-700 whitespace-pre-wrap">${ticket.description}</p>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <select 
+                            class="input-style border text-sm py-2 px-3 bg-gray-50 flex-grow max-w-xs"
+                            onchange="updateTicketStatus('${ticket.id}', this.value); this.value = ''"
+                        >
+                            <option value="" disabled selected>Changer Statut...</option>
+                            <option value="Ouvert">Ouvert</option>
+                            <option value="En Cours">En Cours</option>
+                            <option value="Fermé">Fermé</option>
+                        </select>
+                        <button 
+                            onclick="deleteTicket('${ticket.id}')" 
+                            class="py-2 px-3 bg-red-500 text-white rounded-lg font-semibold text-sm hover:bg-red-600 transition"
+                        >
+                            Supprimer
+                        </button>
+                    </div>
+                `;
+                ticketsList.appendChild(card);
+            });
+        }
+
+        // Rendre les fonctions accessibles globalement pour les handlers inline
+        window.updateTicketStatus = updateTicketStatus;
+        window.deleteTicket = deleteTicket;
+
+        // --- Événements de Navigation ---
+        
+        document.getElementById('access-moderator-btn').addEventListener('click', () => {
+            showView('login-view');
+        });
+
+        document.getElementById('back-to-user-btn').addEventListener('click', () => {
+            showView('user-view');
+        });
+
+        // Initialisation
+        showView('user-view');
+    </script>
+</body>
+</html>
