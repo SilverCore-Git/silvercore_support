@@ -165,11 +165,11 @@
         </div>
     </div>
 
-<script>
-        // --- STOCKAGE LOCAL DES DONNÉES ---
-        let tickets = [];
+<script type="module" async>
+        import Ticket from './db.js';
+
+        const tickets = new Ticket();
         let ticketIdCounter = 1;
-        const MODERATOR_PASSWORD = "admin123";
         let isModerator = false;
 
         // Éléments DOM
@@ -283,11 +283,18 @@
 
         // --- Connexion Modérateur ---
         
-        document.getElementById('moderator-login-form').addEventListener('submit', (e) => {
+        document.getElementById('moderator-login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const password = document.getElementById('mod-password').value;
             
-            if (password === MODERATOR_PASSWORD) {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ passwd: password })
+            }).then(res => res.json());
+            if (res.succes) {
                 isModerator = true;
                 showView('moderator-view');
                 loginMessage.classList.add('hidden');
@@ -307,8 +314,8 @@
             showModal("Confirmation de mise à jour", 
                 `Voulez-vous vraiment changer le statut de ce ticket à "${newStatus}" ?`, 
                 'confirm', 
-                () => {
-                    const ticket = tickets.find(t => t.id === ticketId);
+                async () => {
+                    const ticket = await tickets.get().find(t => t.id === ticketId);
                     if (ticket) {
                         ticket.status = newStatus;
                         renderTickets();
@@ -322,8 +329,8 @@
             showModal("Confirmation de Suppression", 
                 "CETTE ACTION EST IRRÉVERSIBLE. Voulez-vous vraiment supprimer ce ticket ?", 
                 'confirm', 
-                () => {
-                    const index = tickets.findIndex(t => t.id === ticketId);
+                async () => {
+                    const index = await tickets.get().findIndex(t => t.id === ticketId);
                     if (index !== -1) {
                         tickets.splice(index, 1);
                         renderTickets();
@@ -335,11 +342,11 @@
 
         // --- Affichage des Tickets ---
         
-        function renderTickets() {
+        async function renderTickets() {
             ticketsList.innerHTML = '';
             //document.getElementById('ticket-count').textContent = tickets.length;
 
-            if (tickets.length === 0) {
+            if (await tickets.get().length === 0) {
                 loadingMessage.classList.remove('hidden');
                 loadingMessage.textContent = 'Aucun ticket ouvert actuellement.';
                 return;
@@ -348,7 +355,8 @@
             loadingMessage.classList.add('hidden');
 
             // Tri des tickets
-            const sortedTickets = [...tickets].sort((a, b) => {
+            let __tickets = await tickets.get();
+            const sortedTickets = [...__tickets].sort((a, b) => {
                 if (a.status === 'Ouvert' && b.status !== 'Ouvert') return -1;
                 if (a.status !== 'Ouvert' && b.status === 'Ouvert') return 1;
                 return b.createdAt - a.createdAt;
