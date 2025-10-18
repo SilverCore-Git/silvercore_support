@@ -8,11 +8,11 @@ require('dotenv').config();
 
 const app = express();
 const webhook = new Webhook('https://discord.com/api/webhooks/1429190805293236275/gRk_r5Nq_HO-qYOVeWFOIJoIeHgCiIhT6F9qcTwGObMkWZl-zVlMpBVFDS9Dau0m6VKy')
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 9873;
 const DB_FILE = path.join(__dirname, 'tickets.json');
 
 // Middleware
-app.use(cors());
+app.use(cors({ origin: "localhost" }));
 app.use(express.json());
 app.use(morgan('tiny'));
 app.use(express.static('public'));
@@ -166,11 +166,13 @@ app.patch('/api/tickets/:id', async (req, res) => {
                 message: 'Ticket non trouvé'
             });
         }
-        
+
         tickets[ticketIndex].status = status;
         tickets[ticketIndex].updatedAt = Date.now();
         
         await writeDB(tickets);
+
+        await webhook.send_status_update(tickets[ticketIndex], tickets[ticketIndex].status);
         
         res.json({
             success: true,
@@ -202,12 +204,15 @@ app.delete('/api/tickets/:id', async (req, res) => {
         
         const deletedTicket = tickets.splice(ticketIndex, 1)[0];
         await writeDB(tickets);
+
+        await webhook.send_deleted(deletedTicket);
         
         res.json({
             success: true,
             message: 'Ticket supprimé avec succès',
             data: deletedTicket
         });
+
     } catch (error) {
         console.error('Erreur lors de la suppression du ticket:', error);
         res.status(500).json({
