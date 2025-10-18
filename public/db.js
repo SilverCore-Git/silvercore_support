@@ -22,4 +22,22 @@ export default class Ticket {
         return data.data;
     }
 
+    async update(ticket)
+    {
+        await fetch(`/api/tickets/${ticket.id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(ticket)
+        })
+    }
+
+    async delete(ticket)
+    {
+        await fetch(`/api/tickets/${ticket.id}`, {
+            method: 'DELETE'
+        })
+    }
+
 }

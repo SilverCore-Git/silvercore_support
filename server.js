@@ -3,9 +3,11 @@ const fs = require('fs').promises;
 const morgan = require('morgan');
 const path = require('path');
 const cors = require('cors');
+const Webhook = require('./webhook');
 require('dotenv').config();
 
 const app = express();
+const webhook = new Webhook('https://discord.com/api/webhooks/1429190805293236275/gRk_r5Nq_HO-qYOVeWFOIJoIeHgCiIhT6F9qcTwGObMkWZl-zVlMpBVFDS9Dau0m6VKy')
 const PORT = process.env.PORT || 3000;
 const DB_FILE = path.join(__dirname, 'tickets.json');
 
@@ -123,6 +125,8 @@ app.post('/api/tickets', async (req, res) => {
         
         tickets.push(newTicket);
         await writeDB(tickets);
+
+        await webhook.send_new(newTicket);
         
         res.status(201).json({
             success: true,
